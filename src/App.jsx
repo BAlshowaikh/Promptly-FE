@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import LearnerPage from './pages/LearnerPage';
 
 const App = () => {
 
   return (
     <>
+      <div className="App">
+        <LearnerPage />
+      </div>
     </>
   )
 }

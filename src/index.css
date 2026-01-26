@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Add a dark background to the body so you don't get blinded on load */
+body {
+  margin: 0;
+  background-color: #0f111a;
+}
