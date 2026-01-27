@@ -6,27 +6,51 @@ import Hint from '../components/learner/exercise/Hint';
 import CodeEditor from '../components/learner/editor/CodeEditor';
 import Terminal from '../components/learner/editor/Terminal';
 
+import api from '../services/api'
+
 const LearnerPage = () => {
   // State Management
   const [mode, setMode] = useState('learner');
   const [aiVision, setAiVision] = useState(false);
-  const [code, setCode] = useState('function filterEvens(arr) {\n  return arr.filter(num => num % 2 === 0);\n}');
-  const [output, setOutput] = useState('');
+  const [code, setCode] = useState("");
+  const [output, setOutput] = useState("");
 
-  // Mock Data (matches your uploaded image)
-  const exerciseData = {
-    title: "Array Filtering",
-    description: "Write a function to filter out even numbers from an array.",
-    hints: [
-      "The function should use the filter method",
-      "The filter condition should check if a number is odd"
-    ]
-  };
+  // States to hold the detailed exercise data
+  const [activeExercise, setActiveExercise] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
+  // ---- HANDLERS -----
+
+  // ---- Handle 1: 
   const handleRunCode = () => {
     setOutput("Running code... \nResult: [1, 3, 5]");
-    // Future: This is where you'll call your Django API
+  }
+
+  // --- Handler 2: Bridge the exercise selection from CourseSidebar to Workspace (Editor and terminal)
+  const handleSelectExercise = async (languageSlug, exerciseId) => {
+    setIsLoading(true) // Start the loading state for the UI
+    try {
+      // Fetch details from the backend: prompt, starter_code, hints
+      const response = await api.get(`/learn/languages/${languageSlug}/exercises/${exerciseId}`)
+      const data = response.data.data
+
+      // Update the main workspace state
+      setActiveExercise({
+        ...data,
+        languageSlug,
+        exerciseId
+      })
+
+      // Load the exercise's starter code into the editor
+      setCode(data.starter_code || "")
+      setOutput("") // Reset terminal for a fresh start
+    } catch (error) {
+      console.error("Failed to load exercise details:", error)
+    } finally {
+      setIsLoading(false) // Stop loading regardless of success/fail
+    }
   };
+
 
   return (
     <div className="flex flex-col h-screen bg-[#0f111a] overflow-hidden">
@@ -40,18 +64,26 @@ const LearnerPage = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* 2. Left Sidebar (Course List) */}
-        <CourseSideBar />
+        <CourseSideBar 
+          onSelectExercise={handleSelectExercise} 
+          activeExerciseId={activeExercise?.exerciseId}
+        />
 
         {/* 3. Main Content Area */}
         <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
           
           {/* Left Panel: Instructions & Hints */}
-          <div className="w-full md:w-[40%] p-8 overflow-y-auto border-r border-gray-800">
-            <ExerciseHeader 
-              title={exerciseData.title} 
-              description={exerciseData.description} 
-            />
-            <Hint hints={exerciseData.hints} />
+          <div className="w-full md:w-1/3 p-6 overflow-y-auto border-r border-gray-800">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full text-gray-500">Loading exercise...</div>
+            ) : activeExercise ? (
+              <>
+                <ExerciseHeader title={activeExercise.title} prompt={activeExercise.prompt} />
+                <Hint hints={activeExercise.hints} />
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500">Select an exercise to begin</div>
+            )}
           </div>
 
           {/* Right Panel: Workspace (Editor & Terminal) */}
@@ -59,7 +91,7 @@ const LearnerPage = () => {
             <CodeEditor 
               code={code} 
               setCode={setCode} 
-              language="javascript" 
+              language={activeExercise?.languageSlug || "javascript"}
               onRun={handleRunCode}
             />
             <Terminal output={output} />
@@ -84,4 +116,4 @@ const LearnerPage = () => {
   );
 };
 
-export default LearnerPage;
+export default LearnerPage

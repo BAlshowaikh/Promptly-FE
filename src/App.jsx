@@ -1,7 +1,8 @@
-import LearnerPage from './pages/LearnerPage';
+import { useState } from 'react'
+import LearnerPage from './pages/LearnerPage'
+import api from "./services/api"
 
 const App = () => {
-
   return (
     <>
       <div className="App">
