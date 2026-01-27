@@ -1,29 +1,51 @@
 import React from 'react';
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 
-const Terminal = ({ output }) => {
+const CodeEditor = ({ code, setCode, language = 'javascript', onRun }) => {
+  // Map language strings to CodeMirror extensions
+  const extensions = language === 'python' ? [python()] : [javascript()]
+
   return (
-    <div className="mt-4 bg-[#11121a] border border-gray-800 rounded-lg overflow-hidden flex flex-col min-h-[160px]">
-      {/* Terminal Header */}
-      <div className="flex items-center px-4 py-2 bg-[#1a1b26] border-b border-gray-800 gap-2">
-        <ChevronRightIcon className="w-4 h-4 text-gray-500" />
-        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-          Output
+    <div className="flex flex-col flex-1 bg-[#1a1b26] rounded-lg border border-gray-800 overflow-hidden">
+      {/* Editor Header / Tab */}
+      <div className="h-10 bg-[#11121a] flex items-center justify-between px-4 border-b border-gray-800">
+        <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">
+          Editor — {language}
         </span>
       </div>
 
-      {/* Output Content */}
-      <div className="p-4 font-mono text-sm overflow-y-auto max-h-60">
-        {output ? (
-          <div className="text-gray-300 animate-in fade-in duration-300">
-            {output}
-          </div>
-        ) : (
-          <span className="text-gray-600 italic">Output will be shown here...</span>
-        )}
+      {/* CodeMirror Instance */}
+      <div className="flex-1 text-base overflow-auto">
+        <CodeMirror
+          value={code}
+          height="100%"
+          theme={vscodeDark}
+          extensions={extensions}
+          onChange={(value) => setCode(value)}
+          basicSetup={{
+            lineNumbers: true,
+            foldGutter: true,
+            dropCursor: true,
+            allowMultipleSelections: false,
+            indentOnInput: true,
+          }}
+        />
+      </div>
+
+      {/* Run Action Area */}
+      <div className="p-4 bg-[#11121a] border-t border-gray-800 flex justify-end">
+        <button
+          onClick={onRun}
+          className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-2 rounded-md font-semibold text-sm transition-all shadow-lg active:scale-95"
+        >
+          Run Code
+        </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Terminal;
+export default CodeEditor

@@ -94,7 +94,9 @@ const LearnerPage = () => {
               language={activeExercise?.languageSlug || "javascript"}
               onRun={handleRunCode}
             />
+
             <Terminal output={output} />
+
           </div>
         </main>
       </div>
