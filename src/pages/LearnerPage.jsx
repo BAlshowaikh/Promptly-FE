@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import TopNav from '../components/layout/TopNav'
 import CourseSideBar from '../components/learner/layout/CourseSideBar'
 import ExerciseHeader from '../components/learner/exercise/ExerciseHeader'
@@ -57,7 +57,9 @@ const LearnerPage = () => {
   }
 
   // --- Handler 3: Handle the emotion expression for the AI mode
-  const handleEmotion = (emotion) => {
+  // useCallback will prevent the function from being "re-created" on every render,
+  const handleEmotion = useCallback((emotion) => {
+    console.log("AI Detected Emotion:", emotion)
     // (For development only) Each emotion has a corresponding message
     const messages = {
       happy: "You're doing great! Keep it up! 🚀",
@@ -75,7 +77,7 @@ const LearnerPage = () => {
     setTimeout(() => {
         setBubbleMessage("")
       }, 6000)
-    }
+    }, [])
 
   return (
     <div className="flex flex-col h-screen bg-[#0f111a] overflow-hidden">
@@ -128,7 +130,7 @@ const LearnerPage = () => {
 
       {/* 4. AI Vision Camera Overlay */}
       {aiVision && (
-        <div className="absolute bottom-6 right-6 w-48 h-auto bg-black rounded-xl border-2 border-blue-500 shadow-2xl overflow-hidden z-50 animate-in slide-in-from-bottom-5">
+        <div className="absolute bottom-6 right-6 w-48 h-auto bg-black rounded-xl border-2 border-blue-500 shadow-2xl z-50 animate-in slide-in-from-bottom-5">
           <VisionBubble message={bubbleMessage} />
 
           {/* Header Label */}

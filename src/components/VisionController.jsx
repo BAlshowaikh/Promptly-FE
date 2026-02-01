@@ -11,32 +11,45 @@ const VisionController = ({ onEmotionDetected }) => {
 
     // ----- Method 1: The Loop -----
     const startDetection = async () => {
+    // 1. If models aren't ready, wait for the engine to finish loading
+      if (!aiEngine.isReady()) {
+        console.log("[VisionController]: Brain is sleeping, waiting for models...");
+        try {
+          await aiEngine.load() //  waits for the Promise to resolve
+        } catch (err) {
+          console.error("Models failed to load", err)
+          return
+        }
+      }
       // 1. Ensure the video is actually streaming and models are ready
       if (videoElement && aiEngine.isReady()) {
-        
-        // 2. Run a repeated loop every 600ms 
-        intervalId = setInterval(async () => {
-          try {
-            // 3. Ask the AI: "Find the face and tell me the emotion"
-            // We use TinyFaceDetectorOptions for maximum speed
+
+        const detect = async () => {
+            try {
             const result = await faceapi
-              .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
-              .withFaceExpressions();
+                .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
+                .withFaceExpressions()
 
-            if (result && result.expressions) {
-              // 4. Sort expressions to find the one with the highest confidence
-              const topEmotion = Object.entries(result.expressions)
-                .reduce((a, b) => (a[1] > b[1] ? a : b))[0];
-
-              // 5. Send the result back to the Parent (TopNav or App)
-              onEmotionDetected(topEmotion);
+                if (result && result.expressions) {
+                  console.log("✅ Face found!", result.expressions);
+                    const topEmotion = Object.entries(result.expressions)
+                    .reduce((a, b) => (a[1] > b[1] ? a : b))[0]
+                    onEmotionDetected(topEmotion)
+                } else {
+                  console.log("❓ No face detected in this frame."); // <--- Add this
+                }
+            } catch (err) {
+                console.error("Detection Error:", err)
             }
-          } catch (err) {
-            console.error("Detection Error:", err);
-          }
-        }, 15000); 
+        }
+
+        // RUN IMMEDIATELY ONCE (For first scan)
+        detect()
+
+        // THEN START INTERVAL (for upcoming scans)
+        intervalId = setInterval(detect, 15000) 
       }
-    };
+    }
 
     startDetection();
 
@@ -47,11 +60,10 @@ const VisionController = ({ onEmotionDetected }) => {
   }, [videoElement, onEmotionDetected]);
 
   return (
-    <div className="bottom-4 right-4 z-50">
-      {/* Step 2's component provides the "Eye" */}
+    <>
       <CameraStream onStreamReady={(video) => setVideoElement(video)} />
-    </div>
-  );
-};
+    </>
+  )
+}
 
-export default VisionController;
+export default VisionController

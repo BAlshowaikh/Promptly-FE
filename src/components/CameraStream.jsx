@@ -50,7 +50,7 @@ const CameraStream = ({onStreamReady}) => {
             }
         }
 
-    }, [onStreamReady])
+    }, [])
 
     if (streamError) return <div className="error-msg">{streamError}</div>;
 
