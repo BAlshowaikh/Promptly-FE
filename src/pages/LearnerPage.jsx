@@ -5,6 +5,7 @@ import ExerciseHeader from '../components/learner/exercise/ExerciseHeader';
 import Hint from '../components/learner/exercise/Hint';
 import CodeEditor from '../components/learner/editor/CodeEditor';
 import Terminal from '../components/learner/editor/Terminal';
+import VisionController from '../components/VisionController';
 
 import api from '../services/api'
 
@@ -103,19 +104,25 @@ const LearnerPage = () => {
 
       {/* 4. AI Vision Camera Overlay */}
       {aiVision && (
-        <div className="absolute bottom-6 right-6 w-48 h-36 bg-black rounded-xl border-2 border-blue-500 shadow-2xl overflow-hidden z-50 animate-in slide-in-from-bottom-5">
-          <div className="absolute top-2 left-2 flex items-center gap-1.5">
+        <div className="absolute bottom-6 right-6 w-48 h-auto bg-black rounded-xl border-2 border-blue-500 shadow-2xl overflow-hidden z-50 animate-in slide-in-from-bottom-5">
+          
+          {/* Header Label */}
+          <div className="absolute top-2 left-2 flex items-center gap-1.5 z-10 bg-black/40 px-2 py-0.5 rounded-full">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-[10px] text-white font-bold uppercase">AI Vision Live</span>
+            <span className="text-[10px] text-white font-bold uppercase tracking-wider">
+              AI Vision Live
+            </span>
           </div>
-          {/* Placeholder for Video Feed */}
-          <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-            <span className="text-gray-600 text-xs">Camera Loading...</span>
+
+          {/* The Logic & Video Feed */}
+          <div className="w-full h-full bg-gray-900">
+            <VisionController />
           </div>
+
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 export default LearnerPage
