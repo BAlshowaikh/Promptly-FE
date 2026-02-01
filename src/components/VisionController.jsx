@@ -37,13 +37,13 @@ const VisionController = ({ onEmotionDetected }) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const displaySize = { width: videoElement.videoWidth, height: videoElement.videoHeight };
+        const displaySize = { width: videoElement.videoWidth, height: videoElement.videoHeight }
         faceapi.matchDimensions(canvas, displaySize);
 
         if (result) {
-          const resizedDetections = faceapi.resizeResults(result, displaySize);
+          const resizedDetections = faceapi.resizeResults(result, displaySize)
           const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
 
           // --- MIRROR FIX LOGIC ---
           // We manually flip the canvas context so the drawing matches the mirrored video
