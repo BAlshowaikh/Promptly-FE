@@ -9,12 +9,12 @@ const VisionController = ({ onEmotionDetected }) => {
   useEffect(() => {
     let intervalId = null;
 
-    // ----- Method 1: The Heartbeat Loop -----
+    // ----- Method 1: The Loop -----
     const startDetection = async () => {
       // 1. Ensure the video is actually streaming and models are ready
       if (videoElement && aiEngine.isReady()) {
         
-        // 2. Run a repeated loop every 600ms (balanced for speed & battery)
+        // 2. Run a repeated loop every 600ms 
         intervalId = setInterval(async () => {
           try {
             // 3. Ask the AI: "Find the face and tell me the emotion"
@@ -34,7 +34,7 @@ const VisionController = ({ onEmotionDetected }) => {
           } catch (err) {
             console.error("Detection Error:", err);
           }
-        }, 600); 
+        }, 15000); 
       }
     };
 

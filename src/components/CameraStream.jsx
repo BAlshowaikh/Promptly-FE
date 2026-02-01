@@ -61,9 +61,9 @@ const CameraStream = ({onStreamReady}) => {
             autoPlay
             muted
             playsInline
-            className="w-full h-full object-cover" // object-cover fills the box nicely
+            className="w-full h-full object-cover" 
             style={{ 
-                transform: 'scaleX(-1)', // Keeps the mirror effect
+                transform: 'scaleX(-1)', // the mirror effect
             }}
             />
         </div>

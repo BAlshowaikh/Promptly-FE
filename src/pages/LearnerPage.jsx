@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
-import TopNav from '../components/layout/TopNav';
-import CourseSideBar from '../components/learner/layout/CourseSideBar';
-import ExerciseHeader from '../components/learner/exercise/ExerciseHeader';
-import Hint from '../components/learner/exercise/Hint';
-import CodeEditor from '../components/learner/editor/CodeEditor';
-import Terminal from '../components/learner/editor/Terminal';
-import VisionController from '../components/VisionController';
+import React, { useState } from 'react'
+import TopNav from '../components/layout/TopNav'
+import CourseSideBar from '../components/learner/layout/CourseSideBar'
+import ExerciseHeader from '../components/learner/exercise/ExerciseHeader'
+import Hint from '../components/learner/exercise/Hint'
+import CodeEditor from '../components/learner/editor/CodeEditor'
+import Terminal from '../components/learner/editor/Terminal'
+import VisionController from '../components/VisionController'
+import VisionBubble from '../components/ui/VisionBubble'
 
 import api from '../services/api'
 
 const LearnerPage = () => {
   // State Management
-  const [mode, setMode] = useState('learner');
-  const [aiVision, setAiVision] = useState(false);
-  const [code, setCode] = useState("");
-  const [output, setOutput] = useState("");
+  const [mode, setMode] = useState('learner')
+  const [aiVision, setAiVision] = useState(false)
+  const [bubbleMessage, setBubbleMessage] = useState("")
+  const [currentEmotion, setCurrentEmotion] = useState("neutral")
+
+  const [code, setCode] = useState("")
+  const [output, setOutput] = useState("")
 
   // States to hold the detailed exercise data
   const [activeExercise, setActiveExercise] = useState(null)
@@ -50,8 +54,28 @@ const LearnerPage = () => {
     } finally {
       setIsLoading(false) // Stop loading regardless of success/fail
     }
-  };
+  }
 
+  // --- Handler 3: Handle the emotion expression for the AI mode
+  const handleEmotion = (emotion) => {
+    // (For development only) Each emotion has a corresponding message
+    const messages = {
+      happy: "You're doing great! Keep it up! 🚀",
+      sad: "Don't give up, every bug is a lesson. 💡",
+      neutral: "Stay focused, you're in the zone. 🧠"
+    }
+
+    // Which text to show or just show the emotion name if the const messages  doesn't handle it
+    const textToShow = messages[emotion] || `Feeling: ${emotion}`
+
+    // Change the bubble states
+    setBubbleMessage(textToShow)
+
+    // Clears the bubble after 6 s
+    setTimeout(() => {
+        setBubbleMessage("")
+      }, 6000)
+    }
 
   return (
     <div className="flex flex-col h-screen bg-[#0f111a] overflow-hidden">
@@ -105,7 +129,8 @@ const LearnerPage = () => {
       {/* 4. AI Vision Camera Overlay */}
       {aiVision && (
         <div className="absolute bottom-6 right-6 w-48 h-auto bg-black rounded-xl border-2 border-blue-500 shadow-2xl overflow-hidden z-50 animate-in slide-in-from-bottom-5">
-          
+          <VisionBubble message={bubbleMessage} />
+
           {/* Header Label */}
           <div className="absolute top-2 left-2 flex items-center gap-1.5 z-10 bg-black/40 px-2 py-0.5 rounded-full">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -116,7 +141,7 @@ const LearnerPage = () => {
 
           {/* The Logic & Video Feed */}
           <div className="w-full h-full bg-gray-900">
-            <VisionController />
+            <VisionController onEmotionDetected={handleEmotion}/>
           </div>
 
         </div>
