@@ -59,25 +59,22 @@ const LearnerPage = () => {
   // --- Handler 3: Handle the emotion expression for the AI mode
   // useCallback will prevent the function from being "re-created" on every render,
   const handleEmotion = useCallback((emotion) => {
-    console.log("AI Detected Emotion:", emotion)
-    // (For development only) Each emotion has a corresponding message
-    const messages = {
-      happy: "You're doing great! Keep it up! 🚀",
-      sad: "Don't give up, every bug is a lesson. 💡",
-      neutral: "Stay focused, you're in the zone. 🧠"
-    }
+      // Only update if the emotion is DIFFERENT than the last one
+      // or if the bubble is currently empty
+      setCurrentEmotion((prev) => {
+          if (prev === emotion && bubbleMessage !== "") return prev;
 
-    // Which text to show or just show the emotion name if the const messages  doesn't handle it
-    const textToShow = messages[emotion] || `Feeling: ${emotion}`
+          const messages = {
+            happy: "You're doing great! Keep it up! 🚀",
+            sad: "Don't give up, every bug is a lesson. 💡",
+            neutral: "Stay focused, you're in the zone. 🧠"
+          };
 
-    // Change the bubble states
-    setBubbleMessage(textToShow)
+          setBubbleMessage(messages[emotion] || `Feeling: ${emotion}`);
+          return emotion;
+      });
+  }, [bubbleMessage])
 
-    // Clears the bubble after 6 s
-    setTimeout(() => {
-        setBubbleMessage("")
-      }, 6000)
-    }, [])
 
   return (
     <div className="flex flex-col h-screen bg-[#0f111a] overflow-hidden">
