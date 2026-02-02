@@ -34,7 +34,7 @@ const CourseSideBar = ({onSelectExercise, activeExerciseId}) => {
     const fetchLanguages = async () => {
       try{
         // Call the BE endpoint
-        const response = await api.get("/learn/languages")
+        const response = await api.get("/learning/languages/")
         // Access the .data property from JSON structure
         setLanguages(response.data.data || [])
       } catch (error){
@@ -60,7 +60,7 @@ const CourseSideBar = ({onSelectExercise, activeExerciseId}) => {
     // Fetch from the BE only if there is no object in exercise with the requird language
     if (!exercises[slug]){
       try{
-        const response = await api.get(`/learn/languages/${slug}/exercises`)
+        const response = await api.get(`/learning/languages/${slug}/exercises/`)
         // Update the list of chached exercise wihout losing prev data
         setExercises(prev => ({...prev, [slug]: response.data.data || []}))
       } catch (error) {
@@ -75,7 +75,7 @@ const CourseSideBar = ({onSelectExercise, activeExerciseId}) => {
     
     try {
       // Tell Django to create the LearningProgress record
-      const response = await api.post('/learn/progress/', { 
+      const response = await api.post('/learning/progress/', { 
         language_slug: slug 
       })
 

@@ -36,7 +36,7 @@ const LearnerPage = () => {
     setIsLoading(true) // Start the loading state for the UI
     try {
       // Fetch details from the backend: prompt, starter_code, hints
-      const response = await api.get(`/learn/languages/${languageSlug}/exercises/${exerciseId}`)
+      const response = await api.get(`/learning/languages/${languageSlug}/exercises/${exerciseId}/`)
       const data = response.data.data
 
       // Update the main workspace state

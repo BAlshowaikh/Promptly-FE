@@ -12,6 +12,6 @@ const ExerciseHeader = ({ title, prompt }) => {
       </p>
     </div>
   );
-};
+}
 
 export default ExerciseHeader;
