@@ -4,7 +4,7 @@ import axios from "axios"
 const api = axios.create({
     baseURL: "http://localhost:8000/api", // Django server URL
     timeout: 5000, // Time allowed to wait for respond from the BE server
-    withCredentials: true,
+    // withCredentials: true,
     headers: {
         "Content-Type": "application/json", // Tells BE server what kind on data the Client is sending (for POST/PUT requests)
         "Accept": "application/json", // Tells the server what kind of data the Client wants to receive
@@ -20,6 +20,48 @@ api.interceptors.request.use((config) => {
         return config
     },(error) => {
         return Promise.reject(error);
+    }
+)
+
+// Function to handle the refresh endpoint automatically
+// Once the access token is expired any request the suer sends BE will return 401
+// This function catches the 401 error before it goes to the UI and send a refresh request to the BE
+// If successful the new access token will be stored, if faild the user will have to login again
+api.interceptors.response.use((response) => response, // If the request succeeds, just pass it through
+    async (error) => {
+        const originalRequest = error.config
+
+        // If the error is 401 and we haven't tried retrying yet
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true
+
+            try {
+                const refreshToken = localStorage.getItem("refresh_token");
+                
+                // Call the Refresh endpoint
+                const response = await axios.post("http://localhost:8000/api/token/refresh/", {
+                    refresh: refreshToken
+                })
+
+                if (response.status === 200) {
+                    const newAccessToken = response.data.access
+                    
+                    // Save the new key
+                    localStorage.setItem("access_token", newAccessToken)
+                    
+                    // Update the original request's header and retry it
+                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                    return api(originalRequest)
+                }
+            } catch (refreshError) {
+                // If refresh fails, the user must log in again
+                localStorage.removeItem("access_token")
+                localStorage.removeItem("refresh_token")
+                window.location.href = "/login"
+                return Promise.reject(refreshError)
+            }
+        }
+        return Promise.reject(error)
     }
 )
 

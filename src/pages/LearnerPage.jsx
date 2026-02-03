@@ -19,6 +19,7 @@ const LearnerPage = () => {
 
   const [code, setCode] = useState("")
   const [output, setOutput] = useState("")
+  const [isRunning, setIsRunning] = useState(false)
 
   // States to hold the detailed exercise data
   const [activeExercise, setActiveExercise] = useState(null)
@@ -26,9 +27,43 @@ const LearnerPage = () => {
 
   // ---- HANDLERS -----
 
-  // ---- Handle 1: 
-  const handleRunCode = () => {
-    setOutput("Running code... \nResult: [1, 3, 5]");
+  // ---- Handle 1: Once the user clicks Run code button in CodeEditor component
+  const handleRunCode = async () => {
+    // If there's no active exercise
+    if (!activeExercise){
+      return
+    }
+    // Prevent double clicks
+    if (isRunning) {
+      return
+    }
+
+    setIsRunning(true)
+    setOutput("Executing code...")
+
+    // Try to call the BE endpoint
+    try{
+      const payload = {
+        language_slug: activeExercise.languageSlug,
+        exercise_id: activeExercise.id,
+        user_code: code,
+      }
+
+      const response = await api.post("/learning/exercise/submit/", payload)
+
+      // Access the data from the custom success_response
+      const result = response.data.data
+      if (result.status === "passed"){
+        setOutput(`Success!\n\n${result.output || "Code executed perfectly."}`)
+      } else {
+        setOutput(`Failed!\n\nError: ${result.error || "Incorrect output"}`);
+      }
+    } catch(err){
+      console.error("Submission Error:", err);
+      setOutput(`Error: ${err.response?.data?.message || "Server connection failed."}`)
+    } finally {
+      setIsRunning(false);
+    }
   }
 
   // --- Handler 2: Bridge the exercise selection from CourseSidebar to Workspace (Editor and terminal)
@@ -117,6 +152,7 @@ const LearnerPage = () => {
               setCode={setCode} 
               language={activeExercise?.languageSlug || "javascript"}
               onRun={handleRunCode}
+              isRunning={isRunning} // Pass this to show a spinner
             />
 
             <Terminal output={output} />

@@ -1,4 +1,4 @@
-/* This file use to pass the user object to any 
+/* This file used to pass the user object to any 
 component that request it, also it handles checing the stored token
 in the local storage and setting the logged in user
 */
@@ -44,7 +44,7 @@ export const AuthProvider = ({children}) => {
             localStorage.setItem("refresh_token", response.data.refresh)
             
             // Decode the received access token so we have the user info
-            const decoded = jwtDecode(response.data.access);
+            const decoded = jwtDecode(response.data.access)
             setUser(decoded) // this now conatins email, user_id, username
 
             return { success: true }

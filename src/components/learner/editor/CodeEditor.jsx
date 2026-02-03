@@ -4,7 +4,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 
-const CodeEditor = ({ code, setCode, language = 'javascript', onRun }) => {
+const CodeEditor = ({ code, setCode, language = 'javascript', onRun,isRunning  }) => {
   // Map language strings to CodeMirror extensions
   const extensions = language === 'python' ? [python()] : [javascript()]
 
@@ -38,11 +38,19 @@ const CodeEditor = ({ code, setCode, language = 'javascript', onRun }) => {
       {/* Run Action Area */}
       <div className="p-4 bg-[#11121a] border-t border-gray-800 flex justify-end">
         <button
-          onClick={onRun}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-2 rounded-md font-semibold text-sm transition-all shadow-lg active:scale-95"
-        >
-          Run Code
-        </button>
+              onClick={onRun}
+              disabled={isRunning}
+              className={`${
+                isRunning ? "bg-gray-600 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500"
+              } text-white px-8 py-2 rounded-md font-semibold text-sm transition-all shadow-lg active:scale-95 flex items-center gap-2`}
+            >
+              {isRunning ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Running...
+                </>
+              ) : ("Run Code")}
+            </button>
       </div>
     </div>
   )
