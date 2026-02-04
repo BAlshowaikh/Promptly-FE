@@ -23,6 +23,7 @@ const LearnerPage = () => {
 
   // States to hold the detailed exercise data
   const [activeExercise, setActiveExercise] = useState(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0) // This to be sent to the CourseSideBar to track the refresh for exercises and progress bar
   const [isLoading, setIsLoading] = useState(false)
 
   // ---- HANDLERS -----
@@ -55,6 +56,7 @@ const LearnerPage = () => {
       const result = response.data.data
       if (result.status === "passed"){
         setOutput(`Success!\n\n${result.output || "Code executed perfectly."}`)
+        setRefreshTrigger(prev => prev + 1) // Increment the trigger to notify the Sidebar
       } else {
         setOutput(`Failed!\n\nError: ${result.error || "Incorrect output"}`);
       }
@@ -126,6 +128,7 @@ const LearnerPage = () => {
         <CourseSideBar 
           onSelectExercise={handleSelectExercise} 
           activeExerciseId={activeExercise?.exerciseId}
+          refreshTrigger={refreshTrigger}
         />
 
         {/* 3. Main Content Area */}

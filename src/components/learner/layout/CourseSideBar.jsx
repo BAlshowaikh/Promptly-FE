@@ -13,7 +13,7 @@ import {
 
 import ProgressBar from '../../ui/ProgressBar'
 
-const CourseSideBar = ({onSelectExercise, activeExerciseId}) => {
+const CourseSideBar = ({onSelectExercise, activeExerciseId, refreshTrigger}) => {
   const [languages, setLanguages] = useState([])
   // Track which language is open
   const [expandedLang, setExpandedLang] = useState(null)
@@ -31,23 +31,36 @@ const CourseSideBar = ({onSelectExercise, activeExerciseId}) => {
     }
   }
 
-  // ------ Function 1: Fetch the initail list of languages
-  // Run only once, immediatly after mounting
-  useEffect(() => {
-    const fetchLanguages = async () => {
-      try{
-        // Call the BE endpoint
-        const response = await api.get("/learning/languages/")
-        // Access the .data property from JSON structure
-        setLanguages(response.data.data || [])
-      } catch (error){
-        console.error("Error when fetching the langauges:", error)
-      } finally {
+  const fetchLanguages = async () => {
+    try{
+      // Call the BE endpoint
+      const response = await api.get("/learning/languages/")
+      // Access the .data property from JSON structure
+      setLanguages(response.data.data || [])
+    } catch (error){
+      console.error("Error when fetching the langauges:", error)
+    } finally {
         setLoading(false) // In all cases the loading spinner should dissapear
       }
     }
+
+  // ------ Function 1: Fetch the initail list of languages
+  // Run only once, immediatly after mounting
+  useEffect(() => {
     fetchLanguages()
-  }, [])
+  }, [refreshTrigger])
+
+  // Update the exercises list when a trigger happens
+  useEffect(() => {
+    // If a language is currently expanded, refresh its exercises too 
+    if (expandedLang) {
+       const fetchExercises = async () => {
+         const response = await api.get(`/learning/languages/${expandedLang}/exercises/`);
+         setExercises(prev => ({ ...prev, [expandedLang]: response.data.data || [] }));
+       };
+       fetchExercises();
+    }
+  }, [refreshTrigger, expandedLang])
 
   // ------ Function 2: Fetch exercises for a specific language
   const toggleLanguage = async (slug) => {
@@ -98,7 +111,7 @@ const CourseSideBar = ({onSelectExercise, activeExerciseId}) => {
 
   if (loading) return <div className="p-4 text-gray-500">Loading...</div>
 
-return (
+  return (
     <div className={`relative transition-all duration-300 ease-in-out bg-[#1a1b26] border-r border-gray-800 flex flex-col h-full text-gray-400 ${isCollapsed ? 'w-16' : 'w-64'}`}>
       
       {/* Collapse Toggle Button */}
