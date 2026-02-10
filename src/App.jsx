@@ -27,6 +27,16 @@ const App = () => {
                      </ProtectedRoute>}
           />
 
+          {/* 2. Developer Mode Route */}
+          <Route 
+            path="/developing/sessions" 
+            element={
+              <ProtectedRoute>
+                <DeveloperPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Fallback: Redirect or show a default page which is the login*/}
           <Route path="/" element={<Login />} />
         </Routes>
