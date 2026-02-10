@@ -40,7 +40,7 @@ const CourseSideBar = ({onSelectExercise, activeExerciseId, refreshTrigger}) => 
     } catch (error){
       console.error("Error when fetching the langauges:", error)
     } finally {
-        setLoading(false) // In all cases the loading spinner should dissapear
+        setLoading(false) 
       }
     }
 
