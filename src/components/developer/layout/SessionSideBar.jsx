@@ -1,18 +1,27 @@
-import React from 'react';
-import { PlusIcon, ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/react/20/solid';
+import React, {useState} from 'react'
+import { PlusIcon, ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/react/20/solid'
+
+import api from '../../../services/api'
+import DevSessionModal from '../../modal/DevSessionModal';
 
 const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSession, onDeleteSession }) => {
+  const [showDevSessionModal, setshowDevSessionModal] = useState(false)
+
   return (
     <div className="w-64 bg-[#1a1b26] border-r border-gray-800 flex flex-col h-full text-gray-400">
       {/* Action Header */}
       <div className="p-4">
         <button 
-          onClick={onNewSession}
+          onClick={() => setshowDevSessionModal(true)}
           className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-md text-sm font-semibold transition-all active:scale-95"
         >
           <PlusIcon className="w-5 h-5" />
           New Session
         </button>
+        <DevSessionModal
+            open={showDevSessionModal}
+            onClose={() => setshowDevSessionModal(false)}
+        />
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 space-y-1">
@@ -35,6 +44,7 @@ const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSessi
             
             <button 
               onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id); }}
+
               className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
             >
               <TrashIcon className="w-3.5 h-3.5" />
