@@ -1,0 +1,59 @@
+import React, { useState } from 'react'
+import TopNav from '../components/layout/TopNav'
+import SessionSidebar from '../components/developer/layout/SessionSideBar'
+import SessionHeader from '../components/developer/SessionHeader'
+import ChatPanel from '../components/developer/ChatPanel'
+
+const DeveloperPage = () => {
+  const [mode, setMode] = useState('developer');
+  const [activeSession, setActiveSession] = useState(null);
+
+  // Mock data for UI testing
+  const mockSessions = [
+    { id: 1, title: "Python Backend Debugging" },
+    { id: 2, title: "React Performance Audit" }
+  ];
+
+  return (
+    <div className="flex flex-col h-screen bg-[#0f111a] overflow-hidden">
+      <TopNav mode={mode} setMode={setMode} />
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Swaps to Developer Sidebar */}
+        <SessionSidebar 
+          sessions={mockSessions} 
+          activeSessionId={activeSession?.id}
+          onSelectSession={(id) => setActiveSession(mockSessions.find(s => s.id === id))}
+        />
+
+        <main className="flex-1 flex flex-col bg-[#0a0b10] overflow-hidden">
+          {activeSession ? (
+            <>
+              <SessionHeader title={activeSession.title} />
+              
+              {/* Dual Pane Layout */}
+              <div className="flex-1 flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+                <ChatPanel role="coder" messages={[]} />
+                <ChatPanel role="explainer" messages={[]} />
+              </div>
+
+              {/* Input Area */}
+              <div className="p-4 bg-[#11121a] border-t border-gray-800">
+                <div className="max-w-4xl mx-auto flex gap-3">
+                  <input className="flex-1 bg-[#1a1b26] border border-gray-700 rounded-lg p-3 text-sm outline-none" placeholder="Message your AI team..." />
+                  <button className="bg-blue-600 px-6 py-2 rounded-lg font-bold text-white">Send</button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-gray-500 italic text-sm">
+              Select a session from the sidebar to start coding
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  )
+}
+
+export default DeveloperPage

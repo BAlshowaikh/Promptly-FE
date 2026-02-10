@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Signup'
 import LearnerPage from './pages/LearnerPage'
+import DeveloperPage from './pages/DeveloperPage'
 
 const App = () => {
   return (
