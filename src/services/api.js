@@ -1,8 +1,10 @@
 import axios from "axios"
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api"
+
 // Create an instance of the axios with pre-defined configs
 const api = axios.create({
-    baseURL: "http://localhost:8000/api", // Django server URL
+    baseURL: BASE_URL, // Django server URL
     timeout: 5000, // Time allowed to wait for respond from the BE server
     withCredentials: true,
     headers: {
@@ -39,7 +41,7 @@ api.interceptors.response.use((response) => response, // If the request succeeds
                 const refreshToken = localStorage.getItem("refresh_token");
                 
                 // Call the Refresh endpoint
-                const response = await axios.post("http://localhost:8000/api/token/refresh/", {
+                const response = await axios.post(`${BASE_URL}/token/refresh/`, {
                     refresh: refreshToken
                 })
 
