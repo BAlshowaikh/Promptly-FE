@@ -206,7 +206,7 @@ const DeveloperPage = () => {
 
 
   /* ------------ Helper 1: Map session runs to panel messages */
-  const mapRunsToPanels = (runs = []) => {
+  const mapRunsToPanels = useCallback((runs = []) => {
     const coder = []
     const explainer = []
 
@@ -239,7 +239,7 @@ const DeveloperPage = () => {
     }
 
     return { coderMsgs: coder, explainerMsgs: explainer }
-  }
+  },[])
 
   if (loading) return <div className="p-4 text-gray-500">Loading...</div>
 
@@ -252,6 +252,10 @@ const DeveloperPage = () => {
           sessions={sessions}
           activeSessionId={activeSessionId}
           onSelectSession={setActiveSessionId}
+          onNewSession={(created) => {
+                          fetchSessions()
+                          if (created?.id) setActiveSessionId(created.id)
+                        }}
         />
 
         <main className="flex-1 flex flex-col bg-[#0a0b10] overflow-hidden">

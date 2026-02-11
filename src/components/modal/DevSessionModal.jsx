@@ -4,20 +4,23 @@ import {
   ChevronLeftIcon,
   CheckIcon,
   XMarkIcon,
-} from "@heroicons/react/24/outline";
+} from "@heroicons/react/24/outline"
 
-const STEPS = ["Basics", "Models", "Review"];
+import api from "../../services/api"
+
+
+const STEPS = ["Basics", "Models", "Review"]
 
 const emptyModelConfig = {
   ai_model: "",
   temperature: 0.7,
   system_prompt: "",
-};
+}
 
-const DevSessionModal = ({ open, onClose }) => {
-  const [step, setStep] = useState(0);
+const DevSessionModal = ({ open, onClose, onCreated }) => {
+  const [step, setStep] = useState(0)
 
-  // STEP 1
+  // STEP 1 
   const [title, setTitle] = useState("");
   const [runMode, setRunMode] = useState("pipeline");
 
@@ -25,16 +28,98 @@ const DevSessionModal = ({ open, onClose }) => {
   const [coderConfig, setCoderConfig] = useState({ ...emptyModelConfig });
   const [explainerConfig, setExplainerConfig] = useState({
     ...emptyModelConfig,
-  });
+  })
 
-  // MOCK MODELS (replace later with API call)
-  const aiModels = [
-    { id: "gpt-4o", name: "GPT-4o" },
-    { id: "llama3", name: "LLaMA-3" },
-    { id: "claude", name: "Claude 3" },
-  ];
+  // models
+  const [aiModels, setAiModels] = useState([])
+  const [modelsLoading, setModelsLoading] = useState(false)
+  // submit
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState("")
 
-  if (!open) return null;
+  // ----- Hook 1: reset fields when open/close
+  useEffect(() => {
+    if (!open) return
+
+    setStep(0)
+    setTitle("")
+    setRunMode("pipeline")
+    setCoderConfig({ ...emptyModelConfig })
+    setExplainerConfig({ ...emptyModelConfig })
+    setErrorMsg("")
+  }, [open])
+
+  // ---------- Hokk 2: fetch models list when modal opens
+  useEffect(() => {
+    if (!open) return
+
+    const fetchModels = async () => {
+      setModelsLoading(true)
+      setErrorMsg("")
+      try {
+        // call the api that has the available_models
+        const res = await api.get("/developing/sessions/")
+        const models = res.data?.data?.available_models ?? []
+        setAiModels(models)
+      } catch (e) {
+        console.error("Failed to load models:", e)
+        setAiModels([])
+        setErrorMsg("Failed to load available models")
+      } finally {
+        setModelsLoading(false)
+      }
+    }
+
+    fetchModels()
+  }, [open])
+
+
+  // ------------ Function 1: Submit session create 
+  const launch = async () => {
+    if (!step1Valid || !step2Valid || submitting) return
+
+    setSubmitting(true)
+    setErrorMsg("")
+
+    const payload = {
+      title: title.trim(),
+      run_mode: runMode,
+      model_configs: [
+        {
+          role: "coder",
+          ai_model: coderConfig.ai_model,
+          temperature: Number(coderConfig.temperature),
+          system_prompt: coderConfig.system_prompt || "",
+          is_enabled: true,
+        },
+        {
+          role: "explainer",
+          ai_model: explainerConfig.ai_model,
+          temperature: Number(explainerConfig.temperature),
+          system_prompt: explainerConfig.system_prompt || "",
+          is_enabled: true,
+        },
+      ],
+    }
+
+    try {
+      const res = await api.post("/developing/sessions/", payload)
+      const created = res.data?.data ?? null
+
+      onCreated?.(created)
+      onClose?.()
+    } catch (e) {
+      console.error("Create session failed:", e)
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.detail ||
+        "Failed to create session"
+      setErrorMsg(msg)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
 
   /* -------------- VALIDATION  */
   const step1Valid = title.trim().length >= 3;
@@ -49,6 +134,8 @@ const DevSessionModal = ({ open, onClose }) => {
   /* ----------------- NAV  */
   const next = () => setStep((s) => Math.min(s + 1, 2))
   const back = () => setStep((s) => Math.max(s - 1, 0))
+
+  if (!open) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -168,7 +255,7 @@ const DevSessionModal = ({ open, onClose }) => {
                         <option value="">Select model</option>
                         {aiModels.map((m) => (
                         <option key={m.id} value={m.id}>
-                            {m.name}
+                            {m.display_name}
                         </option>
                         ))}
                     </select>
@@ -244,11 +331,11 @@ const DevSessionModal = ({ open, onClose }) => {
 
             <button
             disabled={!canNext}
-            onClick={step === 2 ? () => alert("POST later") : next}
+            onClick={step === 2 ? launch : next}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-lg text-sm font-bold text-white disabled:opacity-40"
             >
-            {step === 2 ? "Launch Session" : "Next"}
-            <ChevronRightIcon className="w-4 h-4" />
+            {submitting ? "Launching..." : step === 2 ? "Launch Session" : "Next"}
+            {step !== 2 && <ChevronRightIcon className="w-4 h-4" />}
             </button>
         </div>
         </div>

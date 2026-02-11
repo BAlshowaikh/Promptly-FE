@@ -2,7 +2,7 @@ import React, {useState} from 'react'
 import { PlusIcon, ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/react/20/solid'
 
 import api from '../../../services/api'
-import DevSessionModal from '../../modal/DevSessionModal';
+import DevSessionModal from '../../modal/DevSessionModal'
 
 const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSession, onDeleteSession }) => {
   const [showDevSessionModal, setshowDevSessionModal] = useState(false)
@@ -21,6 +21,7 @@ const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSessi
         <DevSessionModal
             open={showDevSessionModal}
             onClose={() => setshowDevSessionModal(false)}
+            onCreated={(created) => onNewSession?.(created)}
         />
       </div>
 
