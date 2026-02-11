@@ -46,6 +46,163 @@ const DeveloperPage = () => {
     }
   }, [])
 
+    /* ------------ Function 3: Run prompt (streaming) */
+  const runPrompt = async (prompt, role) => {
+    if (!activeSessionId) return
+
+    const trimmed = (prompt ?? "").trim()
+    if (!trimmed) return
+
+    // 1) Add the user bubble to the SAME panel they ran from
+    const userMsg = { output: `**You:** ${trimmed}`, kind: "user" }
+    if (role === "coder") setCoderMsgs((prev) => [...prev, userMsg])
+    else setExplainerMsgs((prev) => [...prev, userMsg])
+
+    // 2) Prepare endpoint
+    const target = role === "explainer" ? "explainer" : "pipeline"
+    const url = `/developing/sessions/${activeSessionId}/run/?target=${encodeURIComponent(target)}`
+
+    // 3) Stream via fetch (axios doesn't handle streaming well in browsers)
+    try {
+      const token = localStorage.getItem("access_token")
+      const res = await fetch(`${api.defaults.baseURL}${url}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          prompt: trimmed,
+          initiator_role: role,
+        }),
+      })
+
+      /* Handle errors */
+      if (!res.ok) {
+        const text = await res.text()
+        const errMsg = text || `Request failed (${res.status})`
+        const fail = { output: `**Error:** ${errMsg}`, kind: "ai" }
+        if (role === "coder") setCoderMsgs((prev) => [...prev, fail])
+        else setExplainerMsgs((prev) => [...prev, fail])
+        return
+      }
+
+      if (!res.body) {
+        const fail = { output: "**Error:** No stream body returned", kind: "ai" }
+        if (role === "coder") setCoderMsgs((prev) => [...prev, fail])
+        else setExplainerMsgs((prev) => [...prev, fail])
+        return
+      }
+
+      // 4) Read stream chunks (To be displayed in the cat as soon ad the llm sends it)
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder("utf-8")
+      let buffer = ""
+
+      const appendToPanel = (panelRole, delta) => {
+        if (!delta) return
+
+        if (panelRole === "coder") {
+          setCoderMsgs(prev => {
+            const copy = [...prev]
+            const last = copy[copy.length - 1]
+
+            if (!last || last.kind !== "ai" || last.streaming !== true) {
+              copy.push({ output: delta, kind: "ai", streaming: true })
+            } else {
+              last.output += delta
+            }
+
+            return copy
+          })
+        }
+
+        if (panelRole === "explainer") {
+          setExplainerMsgs(prev => {
+            const copy = [...prev]
+            const last = copy[copy.length - 1]
+
+            if (!last || last.kind !== "ai" || last.streaming !== true) {
+              copy.push({ output: delta, kind: "ai", streaming: true })
+            } else {
+              last.output += delta
+            }
+
+            return copy
+          })
+        }
+      }
+
+      // Streaming
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          if (!trimmedLine) continue
+
+          try {
+            const obj = JSON.parse(trimmedLine)
+
+            const delta = obj.text ?? ""
+            const chunkRole = obj.sender
+
+            if (!delta) continue
+
+            if (chunkRole === "coder" || chunkRole === "explainer") {
+              appendToPanel(chunkRole, delta)
+            }
+
+          } catch (err) {
+            console.warn("Stream parse error:", err)
+          }
+        }
+      }
+    } catch (err) {
+        console.warn("Stream parse error:", err)
+    }
+  }
+
+    /* ------------ Function 4: Delete session */
+  const deleteSession = async (id) => {
+    if (!id) return
+
+    const ok = window.confirm("Delete this session? This will remove its configs too")
+    if (!ok) return
+
+    try {
+      await api.delete(`/developing/sessions/${id}/`)
+
+      // remove it from sidebar immediately
+      setSessions((prev) => prev.filter((s) => s.id !== id))
+
+      // if deleted session is active, clear the page
+      if (activeSessionId === id) {
+        setActiveSessionId(null)
+        setActiveSessionDetails(null)
+        setCoderMsgs([])
+        setExplainerMsgs([])
+      }
+    } catch (e) {
+      console.error("Delete session failed:", e)
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.detail ||
+        "Failed to delete session"
+      alert(msg)
+    }
+  }
+
+
+
+
   // ------ Hook 1: Fetch the initial list of sessions
   // Run only once, immediately after mounting
   useEffect(() => {
@@ -79,7 +236,7 @@ const DeveloperPage = () => {
 
 
   /* ------------ Helper 1: Map session runs to panel messages */
-  const mapRunsToPanels = (runs = []) => {
+  const mapRunsToPanels = useCallback((runs = []) => {
     const coder = []
     const explainer = []
 
@@ -112,7 +269,7 @@ const DeveloperPage = () => {
     }
 
     return { coderMsgs: coder, explainerMsgs: explainer }
-  }
+  },[])
 
   if (loading) return <div className="p-4 text-gray-500">Loading...</div>
 
@@ -125,6 +282,11 @@ const DeveloperPage = () => {
           sessions={sessions}
           activeSessionId={activeSessionId}
           onSelectSession={setActiveSessionId}
+          onNewSession={(created) => {
+                          fetchSessions()
+                          if (created?.id) setActiveSessionId(created.id)
+                        }}
+          onDeleteSession={deleteSession}
         />
 
         <main className="flex-1 flex flex-col bg-[#0a0b10] overflow-hidden">
@@ -142,6 +304,7 @@ const DeveloperPage = () => {
                     role="coder"
                     messages={coderMsgs}
                     isStreaming={false}
+                    onRun={runPrompt}
                   />
                 </div>
 
@@ -150,6 +313,7 @@ const DeveloperPage = () => {
                     role="explainer"
                     messages={explainerMsgs}
                     isStreaming={false}
+                    onRun={runPrompt}
                   />
                 </div>
               </div>

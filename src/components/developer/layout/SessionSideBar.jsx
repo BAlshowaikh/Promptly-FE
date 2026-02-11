@@ -2,7 +2,7 @@ import React, {useState} from 'react'
 import { PlusIcon, ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/react/20/solid'
 
 import api from '../../../services/api'
-import DevSessionModal from '../../modal/DevSessionModal';
+import DevSessionModal from '../../modal/DevSessionModal'
 
 const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSession, onDeleteSession }) => {
   const [showDevSessionModal, setshowDevSessionModal] = useState(false)
@@ -21,6 +21,7 @@ const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSessi
         <DevSessionModal
             open={showDevSessionModal}
             onClose={() => setshowDevSessionModal(false)}
+            onCreated={(created) => onNewSession?.(created)}
         />
       </div>
 
@@ -37,7 +38,7 @@ const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSessi
               activeSessionId === session.id ? 'bg-[#2a2d3e] text-white' : 'hover:bg-[#2a2d3e]/50 hover:text-gray-200'
             }`}
           >
-            <div className="flex items-center gap-3 truncate">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               <ChatBubbleLeftRightIcon className={`w-4 h-4 ${activeSessionId === session.id ? 'text-blue-400' : 'text-gray-500'}`} />
               <span className="text-sm truncate font-medium">{session.title}</span>
             </div>
@@ -45,9 +46,9 @@ const SessionSidebar = ({ sessions, activeSessionId, onSelectSession, onNewSessi
             <button 
               onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id); }}
 
-              className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
+              className="opacity-100 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
             >
-              <TrashIcon className="w-3.5 h-3.5" />
+              <TrashIcon className="w-4 h-4 text-red-500" />
             </button>
           </div>
         ))}
