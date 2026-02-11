@@ -25,6 +25,40 @@ Promptly Frontend is a React + Vite application supporting both Learner Mode (co
 
 ---
 
+## 📸 Screenshots
+
+Below are some key UI previews connected to the Promptly platform.
+
+### 🔐 Login Screen
+![Login Screen](./public/images/login.png)
+
+### 📚 Learner Mode
+![Learner Dashboard](./public/images/learner-dashboard.png)
+
+### 💻 Developer Mode
+![Developer Workspace](./public/images/developer-workspace.png)
+
+### ✨ Create Account
+![Create Account](./public/images/create-account.png)
+
+---
+
+
+## 🧩 System ERD (Entity Relationship Diagram)
+
+The following diagram illustrates the full backend database architecture of the platform, including:
+
+- 👤 User Authentication
+- 🧠 AI Orchestration (Sessions, Runs & Model Configurations)
+- 🎓 Learning Progress Tracking
+
+This ERD provides a high-level overview of how core entities are connected across the system.
+
+![Promptly System ERD](./public/images/erd.png)
+
+---
+
+
 ## 🧩 Core Features
 
 ### 📌 (Developer Mode)
@@ -126,3 +160,4 @@ Built by **BAlshowaikh**
 - TanStack Query rather than useEffect
 - UI animations
 - Advanced AI state visualization
+
