@@ -134,7 +134,6 @@ const DeveloperPage = () => {
         }
       }
 
-
       // Streaming
       while (true) {
         const { value, done } = await reader.read()
@@ -170,6 +169,37 @@ const DeveloperPage = () => {
         console.warn("Stream parse error:", err)
     }
   }
+
+    /* ------------ Function 4: Delete session */
+  const deleteSession = async (id) => {
+    if (!id) return
+
+    const ok = window.confirm("Delete this session? This will remove its configs too")
+    if (!ok) return
+
+    try {
+      await api.delete(`/developing/sessions/${id}/`)
+
+      // remove it from sidebar immediately
+      setSessions((prev) => prev.filter((s) => s.id !== id))
+
+      // if deleted session is active, clear the page
+      if (activeSessionId === id) {
+        setActiveSessionId(null)
+        setActiveSessionDetails(null)
+        setCoderMsgs([])
+        setExplainerMsgs([])
+      }
+    } catch (e) {
+      console.error("Delete session failed:", e)
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.detail ||
+        "Failed to delete session"
+      alert(msg)
+    }
+  }
+
 
 
 
@@ -256,6 +286,7 @@ const DeveloperPage = () => {
                           fetchSessions()
                           if (created?.id) setActiveSessionId(created.id)
                         }}
+          onDeleteSession={deleteSession}
         />
 
         <main className="flex-1 flex flex-col bg-[#0a0b10] overflow-hidden">
